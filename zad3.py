@@ -4,32 +4,29 @@ def sierpinski(ctx, level):
     surface = cairo.ImageSurface(cairo.Format.RGB24, 640, 480)
     width = surface.get_width()
     height = surface.get_height()
-    size = min(width, height) * 0.8
+    scale_factor = min(width, height) * 0.8
 
-    def draw_triangle(level, size):
+    def draw_triangle(level):
         if level == 0:
             ctx.move_to(0, 0)
-            ctx.line_to(size, 0)
-            #"size * (3**0.5) / 2: This is the y-coordinate of the point. 
-            # It's calculated using the properties of an equilateral triangle. 
-            # The height of an equilateral triangle can be found using the formula: height = (side_length * sqrt(3)) / 2. 
-            # In this case, size is the side length of the triangle, and (3**0.5) is the square root of 3."
-            ctx.line_to(size / 2, size * (3**0.5) / 2)
+            ctx.line_to(1, 0)
+            ctx.line_to(0.5, (3**0.5) / 2)
             ctx.close_path()
             ctx.fill()
         else:
-            draw_triangle(level - 1, size / 2)
+            draw_triangle(level - 1)
 
-            ctx.translate(size / 2, 0)
-            draw_triangle(level - 1, size / 2)
+            ctx.translate(0.5, 0)
+            draw_triangle(level - 1)
 
-            ctx.translate(-size / 4, size * (3**0.5) / 4)
-            draw_triangle(level - 1, size / 2)
+            ctx.translate(-0.25, (3**0.5) / 4)
+            draw_triangle(level - 1)
 
-            ctx.translate(size / 4, -size * (3**0.5) / 4)
-            ctx.translate(-size / 2, 0)
+            ctx.translate(0.25, -(3**0.5) / 4)
+            ctx.translate(-0.5, 0)
 
-    draw_triangle(level, size)
+    ctx.scale(scale_factor, scale_factor)
+    draw_triangle(level)
 
 def main():    
     surface = cairo.ImageSurface(cairo.Format.RGB24, 640, 480)
@@ -42,7 +39,9 @@ def main():
     
     ctx.set_source_rgb(0, 0, 0)
     
-    ctx.translate(20, 20)
+    scale_factor = 400
+
+    ctx.translate(20 / scale_factor, 20 / scale_factor)
 
     sierpinski(ctx, 4)
     
