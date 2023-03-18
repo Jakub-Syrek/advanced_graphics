@@ -1,51 +1,41 @@
 import cairo
 
-def sierpinski(ctx, level):
-    surface = cairo.ImageSurface(cairo.Format.RGB24, 640, 480)
-    width = surface.get_width()
-    height = surface.get_height()
-    scale_factor = min(width, height) * 0.8
+def draw_sierpinski(ctx, depth):
+    # Set up initial triangle
+    WIDTH, HEIGHT = ctx.get_target().get_width(), ctx.get_target().get_height()
+    points = [(WIDTH / 2, 0), (0, HEIGHT), (WIDTH, HEIGHT)]
 
-    def draw_triangle(level):
-        if level == 0:
-            ctx.move_to(0, 0)
-            ctx.line_to(1, 0)
-            ctx.line_to(0.5, (3**0.5) / 2)
-            ctx.close_path()
-            ctx.fill()
-        else:
-            draw_triangle(level - 1)
+    # Define function to draw triangle
+    def draw_triangle(p1, p2, p3):
+        ctx.move_to(*p1)
+        ctx.line_to(*p2)
+        ctx.line_to(*p3)
+        ctx.close_path()
+        ctx.stroke()
 
-            ctx.translate(0.5, 0)
-            draw_triangle(level - 1)
+    # Define function to recursively draw mesh
+    def draw_mesh(points, depth):
+        draw_triangle(*points)
 
-            ctx.translate(-0.25, (3**0.5) / 4)
-            draw_triangle(level - 1)
+        if depth > 0:
+            p1, p2, p3 = points
+            p4 = ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+            p5 = ((p2[0] + p3[0]) / 2, (p2[1] + p3[1]) / 2)
+            p6 = ((p3[0] + p1[0]) / 2, (p3[1] + p1[1]) / 2)
+            draw_mesh([p1, p4, p6], depth - 1)
+            draw_mesh([p4, p2, p5], depth - 1)
+            draw_mesh([p6, p5, p3], depth - 1)
 
-            ctx.translate(0.25, -(3**0.5) / 4)
-            ctx.translate(-0.5, 0)
+    # Draw the mesh
+    draw_mesh(points, depth)
 
-    ctx.scale(scale_factor, scale_factor)
-    draw_triangle(level)
+# Set up the Cairo surface
+WIDTH, HEIGHT = 2048 , 2048
+surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, WIDTH, HEIGHT)
+ctx = cairo.Context(surface)
 
-def main():    
-    surface = cairo.ImageSurface(cairo.Format.RGB24, 640, 480)
-    
-    ctx = cairo.Context(surface)
-    
-    ctx.set_source_rgb(1, 1, 1)
-    
-    ctx.paint()
-    
-    ctx.set_source_rgb(0, 0, 0)
-    
-    scale_factor = 400
+# Draw the Sierpinski mesh
+draw_sierpinski(ctx, depth=11)
 
-    ctx.translate(20 / scale_factor, 20 / scale_factor)
-
-    sierpinski(ctx, 4)
-    
-    surface.write_to_png("result3-4.png")
-
-if __name__ == "__main__":
-    main()
+# Save the image to a file
+surface.write_to_png("D:/tmp/sierpinski.png")
